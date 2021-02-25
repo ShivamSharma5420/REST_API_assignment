@@ -1,7 +1,7 @@
-const { response } = require('express');
+//const { response } = require('express');
 const express = require('express');
 const fs = require('fs');
-const books = require('./books.js');
+const books = require('./booksApi.js');
 const cors = require('cors');
 //const bodyParser = require('body-parser');
 
@@ -67,13 +67,13 @@ app.post('/books/addBook', (req, res) => {
 
     book = req.body;
 
-    console.log(req.body);
+    //console.log(req.body);
 
-    books.addBook(book);
-    console.log("book");
+    books.addBook(book).then(message => { res.send({ message }) });
 
-    //res.send("Book added");
-    res.end();
+
+
+
 
 })
 
@@ -110,11 +110,11 @@ app.delete('/books/deleteBook', (req, res) => {
     }
 
 
-    books.deleteBook(req.query.book_id);
+    books.deleteBook(req.query.book_id).then(data => { res.send({ data }) });
 
-    message = "Book deleted"
 
-    res.send({ message });
+
+
 
 
 })
@@ -135,11 +135,9 @@ app.put('/books/updateBook', (req, res) => {
     }
 
 
-    books.updateBook(req.body);
+    books.updateBook(req.body).then(message => { res.send({ message }); });
 
-    message = "Book updated";
 
-    res.send({ message });
 
 
 })
@@ -149,24 +147,24 @@ app.put('/books/updateBook', (req, res) => {
 
 //4. Get book details by id
 app.get("/books/getBookById", (req, res) => {
-    let message = '';
-    if (!req.query.book_id) {
-        console.log("query parameters not provided");
-        message = 'Please provide  query parameters';
-        return res.send(message);
-    }
+    // let message = '';
+    // if (!req.query.book_id) {
+    //     console.log("query parameters not provided");
+    //     message = 'Please provide  query parameters';
+    //     return res.send(message);
+    // }
 
-    const book = books.listBookById(req.query.book_id);
+    // const book = books.getBookById(req.query.book_id);
 
-    console.log(book);
+    // //console.log(book);
 
-    if (book !== null)
-        res.send(book);
+    // if (book !== null)
+    //     res.send(book);
 
-    else {
-        message = "Book with this id is not available";
-        res.send(message);
-    }
+    // else {
+    //     message = "Book with this id is not available";
+    //     res.send(message);
+    // }
 
 });
 
@@ -174,10 +172,13 @@ app.get("/books/getBookById", (req, res) => {
 //5. Get all the books details
 app.get("/books/getBooks", (req, res) => {
 
-    const Allbooks = books.listBooks();
+    books.getBooks().then(resolve => {
+        res.send(resolve);
+    });
 
-    console.log("sending...");
-    res.send(Allbooks);
+
+
+
 });
 
 
