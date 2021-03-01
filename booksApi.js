@@ -3,7 +3,7 @@ const fs = require("fs");
 const mongoose = require('mongoose');
 
 //connection creation and creating a new DB
-mongoose.connect("mongodb://localhost:27017/bookStore", { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect("mongodb://localhost:27017/bookStore", { useNewUrlParser: true, useUnifiedTopology: true, autoIndex: true, })
     .then(() => console.log("mongoDB connected"))
     .catch((err) => console.log(err))
 
@@ -13,7 +13,7 @@ mongoose.connect("mongodb://localhost:27017/bookStore", { useNewUrlParser: true,
 //A Mongoose Schema defines the structure of the document, default values, validations, etc.
 
 const bookSchema = new mongoose.Schema({
-    book_id: { type: Number, required: true, min: 0 },
+    book_id: { type: Number, unique: true, required: true },
 
     book_name: {
         type: String,
@@ -53,12 +53,32 @@ const addBook = async (bookinfo) => {
         const firstBook = new Book(bookinfo);
 
         const result = await firstBook.save();
+        // const result = await Book.insertOne(bookinfo);
         console.log(result);
         return message;
     } catch (err) {
 
-        console.log("error: " + err._message);
-        message = "error: " + err._message
+        if (err.errors) {
+
+            if (err.errors["book_id"]) {
+                console.log("error: " + err.errors["book_id"]);
+                message = "error: " + err.errors["book_id"];
+            }
+            else if (err.errors["book_name"]) {
+                console.log("error: " + err.errors["book_name"]);
+                message = "error: " + err.errors["book_name"];
+            }
+            else if (err.errors["genre"]) {
+                console.log("error: " + err.errors["genre"]);
+                message = "error: " + err.errors["genre"];
+            }
+            else {
+                message = "error: " + err;
+            }
+        }
+
+
+
         return message;
     }
 

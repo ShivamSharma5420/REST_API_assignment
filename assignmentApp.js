@@ -2,13 +2,17 @@
 const express = require('express');
 const fs = require('fs');
 const books = require('./booksApi.js');
+const cookieParser = require('cookie-parser');
+const users = require('./users.ts');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 //const bodyParser = require('body-parser');
 
 
 const app = express();
 
-app.use(cors());
+app.use(cors({ origin: true, credentials: true }));
+app.use(cookieParser());
 
 app.use(express.json());
 
@@ -20,40 +24,8 @@ app.get("", (req, res) => {
     res.send("Hello World");
 });
 
-
-
-
-
-
-
-
-
-//1. Add a new book.
-
-/*
-app.get('/books/addBook', (req, res) => {
-
-    allParamPresent = req.query.book_id && req.query.book_name && req.query.author_name && req.query.publish_date && req.query.genre;
-
-    if (!(allParamPresent)) {
-        console.log("query parameters not provided");
-        return res.send('Please provide  query parameters');
-    }
-
-
-    book = req.query;
-
-    console.log(req.query);
-
-    books.addBook(book);
-
-    res.send("Book added");
-
-
-})*/
-
-
-app.post('/books/addBook', (req, res) => {
+//add new book
+app.post('/books/addBook', users.auth, (req, res) => {
 
     //console.log(req.body);
 
@@ -71,35 +43,12 @@ app.post('/books/addBook', (req, res) => {
 
     books.addBook(book).then(message => { res.send({ message }) });
 
-
-
-
-
 })
 
 
 
 //2. Delete existing book.
-/*
-app.get('/books/deleteBook', (req, res) => {
-
-
-
-    if (!req.query.book_id) {
-        console.log("query parameters not provided");
-        return res.send('Please provide  query parameters');
-    }
-
-
-    books.deleteBook(req.query.book_id);
-
-    res.send("Book deleted");
-
-
-})*/
-
-
-app.delete('/books/deleteBook', (req, res) => {
+app.delete('/books/deleteBook', users.auth, (req, res) => {
 
     let message = ''
 
@@ -112,18 +61,13 @@ app.delete('/books/deleteBook', (req, res) => {
 
     books.deleteBook(req.query.book_id).then(data => { res.send({ data }) });
 
-
-
-
-
-
 })
 
 
 
 //3. Update book details.(needs to be done)
 
-app.put('/books/updateBook', (req, res) => {
+app.put('/books/updateBook', users.auth, (req, res) => {
 
     allParamsPresent = req.body.book_id && req.body.book_name && req.body.author_name && req.body.publish_date && req.body.genre;
 
@@ -169,17 +113,116 @@ app.get("/books/getBookById", (req, res) => {
 });
 
 
+// app.use("/books/getBooks", async (req, res, next) => {
+//     try {
+//         console.log("Middleware");
+//         const token = req.cookies.loginjwt;
+//         console.log(token);
+//         const verifyUser = jwt.verify(token, "thisismysecretkeytoencryptthistoken");
+//         console.log("user Verification :" + verifyUser);
+
+
+//         const user = await User.findOne({ _id: verifyUser._id });
+//         console.log("verified user details :" + user);
+
+//         next();
+
+//     } catch (error) {
+//         console.log(error);
+
+//     }
+
+// })
+
+
+
 //5. Get all the books details
-app.get("/books/getBooks", (req, res) => {
+app.get("/books/getBooks", users.auth, (req, res) => {
 
     books.getBooks().then(resolve => {
         res.send(resolve);
     });
 
+});
 
 
+
+app.post('/checkUser', (req, res) => {
+
+    //console.log(req.body);
+
+    allParamsPresent = req.body.user_id && req.body.password;
+
+    if (!(allParamsPresent)) {
+        console.log("all parameters not provided");
+        return res.send('Please provide  all parameters');
+    }
+
+
+    user = req.body;
+
+    //console.log(req.body);
+
+    // users.checkUser(user).then(message => { res.send({ message }) });
+    users.checkUser(user).then(message => {
+        if (message.token) {
+            console.log("login jwt cookie: " + message.token)
+            res.cookie('loginjwt', message.token.toString(), { httpOnly: true });
+        }
+
+        //console.log(document.cookie);
+        res.send({ message: message.info });
+    });
+
+
+})
+
+app.get('/cookie', (req, res, next) => {
+    console.log(req.cookies.loginjwt);
+    res.send("cookie is set for local host");
 
 });
+
+app.get('/logOut', (req, res, next) => {
+    if (req.cookies.loginjwt) {
+        res.clearCookie('loginjwt');
+        res.send({ message: "Logout" })
+    }
+    else
+
+        res.send({ message: "Login first in order to logout" });
+
+});
+
+
+app.post('/registerUser', (req, res) => {
+    allParamsPresent = req.body.user_id && req.body.password;
+
+    if (!(allParamsPresent)) {
+        console.log("all parameters not provided");
+        return res.send('Please provide  all parameters');
+    }
+
+
+    user = req.body;
+
+
+
+    users.registerUser(user).then(message => {
+        // console.log("// " + message + " //");
+        if (message.token) {
+            res.cookie('jwt', message.token.toString(), { httpOnly: true });
+
+            //console.log(cookie)
+        }
+        console.log(message.token);
+        //console.log(document.cookie);
+        res.send({ message: message.info });
+    });
+
+})
+
+
 
 
 
