@@ -49,7 +49,7 @@ UserSchema.methods.generateAuthToken = async function () {
         // console.log(token);
 
         this.tokens = this.tokens.concat({ token: token });
-        await this.save();
+        //await this.save();
         return token;
     } catch (error) {
         console.log("error in token generation " + error);

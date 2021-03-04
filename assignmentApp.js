@@ -140,7 +140,10 @@ app.get("/books/getBookById", (req, res) => {
 app.get("/books/getBooks", users.auth, (req, res) => {
 
     books.getBooks().then(resolve => {
-        res.send(resolve);
+        if (resolve)
+            res.send(resolve);
+        else
+            res.status(401).send(resolve);
     });
 
 });
@@ -212,18 +215,22 @@ app.post('/registerUser', (req, res) => {
         // console.log("// " + message + " //");
         if (message.token) {
             res.cookie('jwt', message.token.toString(), { httpOnly: true });
-
+            res.send({ message: message.info });
             //console.log(cookie)
         }
-        console.log(message.token);
+        console.log(message.info);
         //console.log(document.cookie);
-        res.send({ message: message.info });
+        res.status(401).send({ message: message.info });
     });
 
 })
 
 
+/*app.get('*', (req, res, next) => {
+    console.log("Wildcard");
+    res.send({ "page not found"});
 
+});*/
 
 
 //PORT

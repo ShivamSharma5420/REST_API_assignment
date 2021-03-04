@@ -38,6 +38,7 @@ const listBooks = () => {
         console.log(book.book_id, book.book_name);
 
     });
+
     return books;
 }
 
