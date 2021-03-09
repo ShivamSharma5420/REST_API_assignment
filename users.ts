@@ -74,12 +74,13 @@ const checkUser = async (userInfo) => {
         const user = await User.findOne({ user_id: userInfo.user_id });
 
         console.log("user details:" + user);
-
-        const isMatch = await bcrypt.compare(userInfo.password, user.password);
+        let isMatch;
+        if (user)
+            isMatch = await bcrypt.compare(userInfo.password, user.password);
 
         console.log("Is match : " + isMatch);
 
-        if (isMatch) {
+        if (user && isMatch) {
             const token = await user.generateAuthToken();
             return { info: "Valid User", token };
         }

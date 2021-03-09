@@ -59,6 +59,7 @@ app.delete('/books/deleteBook', users.auth, (req, res) => {
     }
 
 
+
     books.deleteBook(req.query.book_id).then(data => { res.send({ data }) });
 
 })
